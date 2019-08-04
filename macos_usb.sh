@@ -1,6 +1,6 @@
 #!/bin/bash
-# Semi-automatic script to create a bootable macOS flash drive on Linux
-# (c) notthebee, myspaghetti, licensed under GPL2.0 or higher
+# Create a bootable macOS flash drive on Linux
+# (c) notthebee, corpnewt
 # url: https://github.com/notthebee/macos_usb
 function gibmacos {
 	echo "Fetching latest gibMacOS by corpnewt"
