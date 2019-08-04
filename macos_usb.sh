@@ -31,6 +31,11 @@ elif [ "${BASH_VERSION:0:1}" -lt 4 ]; then
     exit
 fi
 
+# check for 7zip
+if [ -z "$(7z | grep 7-Zip)" ]; then
+    echo "Please install p7zip"
+fi
+
 # check for unzip, coreutils, wget
 if [ -z "$(unzip -hh 2>/dev/null)" \
      -o -z "$(csplit --help 2>/dev/null)" \
@@ -46,26 +51,6 @@ if [[ "$(wget --version 2>/dev/null | head -n 1)" =~ 1\.1[6-9]|1\.2[0-9] ]]; the
     wgetargs="--quiet --continue --show-progress"  # pretty
 else
     wgetargs="--continue"  # ugly
-fi
-
-# dmg2img
-if [ -z "$(dmg2img -d 2>/dev/null)" ]; then
-    if [ -z "$(cygcheck -V 2>/dev/null)" ]; then
-        echo "Please install the package dmg2img."
-        exit
-    elif [ -z "$(${PWD}/dmg2img -d 2>/dev/null)" ]; then
-        echo "Locally installing dmg2img"
-        wget "http://vu1tur.eu.org/tools/dmg2img-1.6.6-win32.zip" \
-             ${wgetargs} \
-             --output-document="dmg2img-1.6.6-win32.zip"
-        if [ ! -s dmg2img-1.6.6-win32.zip ]; then
-             echo "Error downloading dmg2img. Please provide the package manually."
-             exit
-        fi
-        unzip -oj "dmg2img-1.6.6-win32.zip" "dmg2img.exe"
-        rm "dmg2img-1.6.6-win32.zip"
-        chmod +x "dmg2img.exe"
-    fi
 fi
 
 # prompt for macOS version
@@ -143,63 +128,56 @@ for catalog in "${macOS_release_name}_sucatalog_"* "error"; do
     fi
 done
 echo "Downloading macOS installation files from swcdn.apple.com"
-for filename in "BaseSystem.chunklist" \
-                "InstallInfo.plist" \
-                "AppleDiagnostics.dmg" \
-                "AppleDiagnostics.chunklist" \
-                "BaseSystem.dmg" \
-                "InstallESDDmg.pkg"; \
-    do wget "${urlbase}${filename}" \
-            ${wgetargs} \
-            --output-document "${macOS_release_name}_${filename}"
-done
-echo ""
-echo "Downloading open-source APFS EFI drivers"
-wget 'https://github.com/acidanthera/AppleSupportPkg/releases/download/2.0.4/AppleSupport-v2.0.4-RELEASE.zip' \
-    ${wgetargs} \
-    --output-document 'AppleSupport-v2.0.4-RELEASE.zip'
-unzip -oj 'AppleSupport-v2.0.4-RELEASE.zip'
-echo ""
-echo "Creating EFI startup script"
-echo 'echo -off
-load fs0:\EFI\driver\AppleImageLoader.efi
-load fs0:\EFI\driver\AppleUiSupport.efi
-load fs0:\EFI\driver\ApfsDriverLoader.efi
-map -r
-for %a run (1 5)
-  fs%a:
-  cd "macOS Install Data\Locked Files\Boot Files"
-  boot.efi
-  cd "System\Library\CoreServices"
-  boot.efi
-endfor' > "startup.nsh"
+filename="InstallESDDmg.pkg"
+wget "${urlbase}${filename}" \
+	${wgetargs} \
+	--output-document "${filename}"
 }
 
-function create_macos_installation_files_viso() {
-echo "Crating ISO"
-echo ""
-echo "Splitting the several-GB InstallESDDmg.pkg into 1GB parts because"
-echo "VirtualBox hasn't implemented UDF/HFS VISO support yet and macOS"
-echo "doesn't support ISO 9660 Level 3 with files larger than 2GB."
-split -a 2 -d -b 1000000000 "${macOS_release_name}_InstallESDDmg.pkg" "${macOS_release_name}_InstallESD.part"
-echo "--iprt-iso-maker-file-marker-bourne-sh 57c0ec7d-2112-4c24-a93f-32e6f08702b9
---volume-id=${macOS_release_name:0:5}-files
-/AppleDiagnostics.chunklist=${macOS_release_name}_AppleDiagnostics.chunklist
-/AppleDiagnostics.dmg=${macOS_release_name}_AppleDiagnostics.dmg
-/BaseSystem.chunklist=${macOS_release_name}_BaseSystem.chunklist
-/BaseSystem.dmg=${macOS_release_name}_BaseSystem.dmg
-/InstallInfo.plist=${macOS_release_name}_InstallInfo.plist
-/ApfsDriverLoader.efi=ApfsDriverLoader.efi
-/AppleImageLoader.efi=AppleImageLoader.efi
-/AppleUiSupport.efi=AppleUiSupport.efi
-/startup.nsh=startup.nsh" > "${macOS_release_name}_installation_files.viso"
-for part in "${macOS_release_name}_InstallESD.part"*; do
-    echo "/InstallESD${part##*InstallESD}=${part}" >> "${macOS_release_name}_installation_files.img"
-done
+function unpackhfs {
+# Store the name of the file in a variable
+hfsfile="$(find . -type f -iregex '\./[3-5]+\.hfs')"
 
+if [ -z "$hfsfile" ]; then
+	echo "Unpacking the installation files"
+	7z e -txar *.pkg *.dmg; 7z e *.dmg */Install*; 7z e -tdmg Install*.dmg *.hfs
+else
+	echo "Already unpacked"
+fi
 }
 
-welcome
+function partition {
+lsblk
+printf "\nEnter the path to your flash drive (e.g. /dev/sdb)"
+printf "\nDOUBLE CHECK THE EXACT PATH WITH lsblk\n"
+read flashdrive 2>/dev/tty
+usb="$(readlink /sys/block/$(echo ${flashdrive} | sed 's/^\/dev\///') | grep -o usb)"
+if [ -z ${usb} ]; then
+	echo "WARNING! ${flashdrive} is NOT a USB device"
+	echo "Are you sure you know what you're doing?"
+	read -p " [Y/N] " answer 2>/dev/tty
+        if [ ! "${answer^^}" == "Y" ]; then
+		echo "Abort"
+		exit 0
+	fi	
+fi
+sudo umount ${flashdrive}*
+sudo sgdisk --zap-all ${flashdrive}
+sudo sgdisk -n 0:0:+200MiB -t 0:0700 ${flashdrive}
+sudo sgdisk -n 0:0:0 -t 0:af00 ${flashdrive}
+sudo mkfs.vfat -F 32 -n "CLOVER" ${flashdrive}1
+}
+
+function burn {
+echo "Flashing the image"
+sudo dd if=${hfsfile} of=${flashdrive}2 bs=8M status=progress oflag=sync
+}
+
+
+partition
 check_dependencies
 prepare_macos_installation_files
-create_macos_installation_files_viso
+unpackhfs
+burn
+echo "Success!"
+echo "Don't forget to install the Clover bootloader!"
