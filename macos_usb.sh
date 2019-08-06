@@ -19,7 +19,7 @@ function gibmacos {
 
 function unpackhfs {
 	# Store the name of the file in a variable
-	hfsfile="$(find . -type f -iregex '\./[3-5]+\.hfs')"
+	hfsfile="$(find . -type f -name '4.hfs' -o -name '5.hfs')"
 	if [ -z "$hfsfile" ]; then
 		echo "Unpacking the installation files"
 		mv gibMacOS/macOS\ Downloads/publicrelease/*/*.pkg .
