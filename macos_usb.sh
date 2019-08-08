@@ -1,13 +1,18 @@
 #!/bin/bash
-# Create a bootable macOS flash drive on Linux
+# Create a bootable macOS flash drive on Linux and macOS
 # (c) notthebee, corpnewt
 # url: https://github.com/notthebee/macos_usb
 
 function checkdep {
-	# check if running on Linux
-	if [[ "$OSTYPE" != "linux-gnu" ]]; then
-		echo "This script will only run on Linux-based operating systems!"
-	fi
+	# check if running on Linux or macOS
+	case "$OSTYPE" in
+		"linux-gnu"|"darwin"*)
+			;;
+		*)
+			echo "This script will only run on Linux or macOS!"
+			exit 1
+			;;
+	esac
 
 	# check for 7zip
 	if [ -z "$(7z | grep 7-Zip)" ]; then
@@ -24,7 +29,7 @@ function checkdep {
 		echo "Please install python"
 		exit 1
 	fi
-	
+
 }
 
 function gibmacos {
@@ -46,8 +51,10 @@ function unpackhfs {
 }
 
 function partition {
+
 	# if we don't have the HFS file at this point,
 	# let's not bother partitioning the drive
+
 	hfsfile="$(find . -type f -name '4.hfs' -o -name '5.hfs')"
 	# assigning the variable twice is the only way i was able to make it work
 	# if you know a better way, please let me know
@@ -55,32 +62,49 @@ function partition {
 		echo "ERROR! HFS image not found"
 		exit 1
 	fi
-	lsblk
-	printf "\nEnter the path to your flash drive (e.g. /dev/sdb)"
+
+	# Execute diskutil list if running on macOS
+	lsblk 2>/dev/null || diskutil list
+	printf "\nEnter the path to your flash drive (e.g. /dev/sdb or /dev/disk3)"
 	printf "\nDOUBLE CHECK THE EXACT PATH WITH lsblk or diskutil\n"
 	read flashdrive 2>/dev/tty
-	usb="$(readlink /sys/block/$(echo ${flashdrive} | sed 's/^\/dev\///') | grep -o usb)"
-	if [ -z ${usb} ]; then
+
+	# Check if user specified a USB device
+	if [[ "$OSTYPE" == "linux-gnu" ]]; then
+		usb="$(readlink /sys/block/$(echo ${flashdrive} | sed 's/^\/dev\///') | grep -o usb)"
+	elif [[ "$OSTYPE" == "darwin"* ]]; then
+		usb=$(diskutil list | grep -e ".*$flashdrive.*external")
+	fi
+
+	if [ -z "$usb" ]; then
 		echo "WARNING! ${flashdrive} is NOT a USB device"
 		echo "Are you sure you know what you're doing?"
 		read -p " [Y/N] " answer 2>/dev/tty
-		if [ ! "${answer^^}" == "Y" ]; then
+		if [[ ! $answer =~ ^[Yy]$ ]]; then
 			echo "Abort"
 			exit 0
 		fi	
 	fi
-	sudo umount ${flashdrive}*
-	sudo sgdisk --zap-all ${flashdrive}
-	sudo sgdisk -n 0:0:+200MiB -t 0:0700 ${flashdrive}
-	sudo sgdisk -n 0:0:0 -t 0:af00 ${flashdrive}
-	sudo mkfs.vfat -F 32 -n "CLOVER" ${flashdrive}1
-}
 
+	# Destroy the GPT and partition the drive anew 
+	if [[ "$OSTYPE" == "linux-gnu" ]]; then
+		sudo umount ${flashdrive}*
+		sudo sgdisk --zap-all ${flashdrive}
+		sudo sgdisk -n 0:0:+200MiB -t 0:0700 ${flashdrive}
+		sudo sgdisk -n 0:0:0 -t 0:af00 ${flashdrive}
+		sudo mkfs.vfat -F 32 -n "CLOVER" ${flashdrive}1
+
+	elif [[ "$OSTYPE" == "darwin"* ]]; then
+		sudo diskutil eraseDisk JHFS+ INSTALL /dev/disk4
+		sudo diskutil umountDisk ${flashdrive}
+	fi
+}
 
 function burn {
 	echo "Flashing the image"
-	sudo dd if=${hfsfile} of=${flashdrive}2 bs=8M status=progress oflag=sync
+	sudo dd if=${hfsfile} of=${flashdrive}2 bs=8M status=progress oflag=sync 2>/dev/null || sudo dd if=${hfsfile} of=${flashdrive}s2 bs=8m
 }
+
 
 checkdep
 gibmacos
@@ -89,4 +113,4 @@ partition
 burn
 
 echo "Success!"
-echo "Don't forget to install the Clover bootloader!"
+echo "Don't forget to install the Clover bootloader in case you plan to use the media on a non-Apple computer!"
