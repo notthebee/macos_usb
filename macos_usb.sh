@@ -2,18 +2,34 @@
 # Create a bootable macOS flash drive on Linux
 # (c) notthebee, corpnewt
 # url: https://github.com/notthebee/macos_usb
+
 function checkdep {
+	# check if running on Linux
+	if [[ "$OSTYPE" != "linux-gnu" ]]; then
+		echo "This script will only run on Linux-based operating systems!"
+	fi
 
 	# check for 7zip
 	if [ -z "$(7z | grep 7-Zip)" ]; then
 		echo "Please install p7zip"
 		exit 1 
 	fi
+
+	# check for git
+	if ! git --version > /dev/null 2>&1; then
+		echo "Please install git"
+		exit 1
+	fi
+	if ! python --version > /dev/null 2>&1; then
+		echo "Please install python"
+		exit 1
+	fi
+	
 }
 
 function gibmacos {
 	echo "Fetching latest gibMacOS by corpnewt"
-	git clone "https://github.com/corpnewt/gibMacOS"
+	git clone "https://github.com/corpnewt/gibMacOS" > /dev/null 2>&1
 	python gibMacOS/gibMacOS.command -r -l
 }
 
@@ -30,9 +46,18 @@ function unpackhfs {
 }
 
 function partition {
+	# if we don't have the HFS file at this point,
+	# let's not bother partitioning the drive
+	hfsfile="$(find . -type f -name '4.hfs' -o -name '5.hfs')"
+	# assigning the variable twice is the only way i was able to make it work
+	# if you know a better way, please let me know
+	if [ -z "$hfsfile" ]; then
+		echo "ERROR! HFS image not found"
+		exit 1
+	fi
 	lsblk
 	printf "\nEnter the path to your flash drive (e.g. /dev/sdb)"
-	printf "\nDOUBLE CHECK THE EXACT PATH WITH lsblk\n"
+	printf "\nDOUBLE CHECK THE EXACT PATH WITH lsblk or diskutil\n"
 	read flashdrive 2>/dev/tty
 	usb="$(readlink /sys/block/$(echo ${flashdrive} | sed 's/^\/dev\///') | grep -o usb)"
 	if [ -z ${usb} ]; then
@@ -62,5 +87,6 @@ gibmacos
 unpackhfs
 partition
 burn
+
 echo "Success!"
 echo "Don't forget to install the Clover bootloader!"
