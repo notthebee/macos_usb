@@ -95,7 +95,7 @@ function partition {
 		sudo mkfs.vfat -F 32 -n "CLOVER" ${flashdrive}1
 
 	elif [[ "$OSTYPE" == "darwin"* ]]; then
-		sudo diskutil eraseDisk JHFS+ INSTALL /dev/disk4
+		sudo diskutil eraseDisk JHFS+ INSTALL ${flashdrive}
 		sudo diskutil umountDisk ${flashdrive}
 	fi
 }
