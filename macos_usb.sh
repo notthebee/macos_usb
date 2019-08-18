@@ -3,6 +3,9 @@
 # (c) notthebee, corpnewt
 # url: https://github.com/notthebee/macos_usb
 
+# The script will terminate if any subsequent command fails
+set -e
+
 function checkdep {
 	# check if running on Linux or macOS
 	case "$OSTYPE" in
