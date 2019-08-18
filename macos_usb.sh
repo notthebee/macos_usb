@@ -23,10 +23,36 @@ function checkdep {
 	done
 }
 
+function version {
+	printf '
+	Press a key to select the macOS version
+	Press Enter to download latest release (default)
+	[H]igh Sierra (10.13)
+	[M]ojave (10.14)
+	[C]atalina (10.15 beta)
+
+	'
+	read -n 1 -p "[H/M/C] " macOS_release_name 2>/dev/tty
+	echo ""
+}
+
 function gibmacos {
 	echo "Fetching latest gibMacOS by corpnewt"
-	git clone "https://github.com/corpnewt/gibMacOS" &> /dev/null
-	python gibMacOS/gibMacOS.command -r -l
+	rm -rf gibMacOS && git clone "https://github.com/corpnewt/gibMacOS" &> /dev/null
+	case $macOS_release_name in
+		[Hh])
+			python gibMacOS/gibMacOS.command -r -v 10.13
+			;;
+		[Mm])
+			python gibMacOS/gibMacOS.command -r -v 10.14
+			;;
+		[Cc])
+			python gibMacOS/gibMacOS.command -r -v 10.15
+			;;
+		*)
+			python gibMacOS/gibMacOS.command -r -l
+			;;
+	esac
 }
 
 function unpackhfs {
@@ -101,7 +127,8 @@ function burn {
 
 
 checkdep
-gibmacos
+version
+gibmacos 
 unpackhfs
 partition
 burn
