@@ -14,22 +14,13 @@ function checkdep {
 			;;
 	esac
 
-	# check for 7zip
-	if [ -z "$(7z | grep 7-Zip)" ]; then
-		echo "Please install p7zip"
-		exit 1 
-	fi
 
-	# check for git
-	if ! git --version > /dev/null 2>&1; then
-		echo "Please install git"
-		exit 1
-	fi
-	if ! python --version > /dev/null 2>&1; then
-		echo "Please install python"
-		exit 1
-	fi
-
+	for n in git python 7z lsblk find grep sgdisk mkfs.vfat sed readlink dd; do
+		if ! $n --help > /dev/null 2>&1; then
+			echo "Please install $n"
+			exit 1
+		fi
+	done
 }
 
 function gibmacos {
