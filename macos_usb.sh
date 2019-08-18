@@ -16,7 +16,7 @@ function checkdep {
 
 
 	for n in git python 7z lsblk find grep sgdisk mkfs.vfat sed readlink dd; do
-		if ! $n --help > /dev/null 2>&1; then
+		if ! $n --help &> /dev/null; then
 			echo "Please install $n"
 			exit 1
 		fi
@@ -25,7 +25,7 @@ function checkdep {
 
 function gibmacos {
 	echo "Fetching latest gibMacOS by corpnewt"
-	git clone "https://github.com/corpnewt/gibMacOS" > /dev/null 2>&1
+	git clone "https://github.com/corpnewt/gibMacOS" &> /dev/null
 	python gibMacOS/gibMacOS.command -r -l
 }
 
