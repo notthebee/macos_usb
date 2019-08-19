@@ -105,6 +105,9 @@ function partition {
 			exit 0
 		fi	
 	fi
+	
+	# Allow "Not mounted" errors etc.
+	set +e
 
 	# Destroy the GPT and partition the drive anew 
 	if [[ "$OSTYPE" == "linux-gnu" ]]; then
