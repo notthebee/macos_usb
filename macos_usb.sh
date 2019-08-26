@@ -110,20 +110,20 @@ function partition {
 	set +e
 
 	# Destroy the GPT and partition the drive anew 
-	if [[ "$OSTYPE" == "linux-gnu" ]]; then
-		sudo umount ${flashdrive}*
-		sudo sgdisk --zap-all ${flashdrive}
-		sudo sgdisk -n 0:0:+200MiB -t 0:0700 ${flashdrive}
-		sudo sgdisk -n 0:0:0 -t 0:af00 ${flashdrive}
-		sudo mkfs.vfat -F 32 -n "CLOVER" ${flashdrive}1
-
-	elif [[ "$OSTYPE" == "darwin"* ]]; then
+	if [[ "$OSTYPE" == "darwin"* ]]; then
 		# Using raw disk
 		flashdrive=$(echo ${flashdrive} | sed 's/disk/rdisk/')
 
 		sudo diskutil eraseDisk JHFS+ INSTALL ${flashdrive}
 		sudo diskutil umountDisk ${flashdrive}
+	else
+		sudo umount ${flashdrive}*
+		sudo sgdisk --zap-all ${flashdrive}
+		sudo sgdisk -n 0:0:+200MiB -t 0:0700 ${flashdrive}
+		sudo sgdisk -n 0:0:0 -t 0:af00 ${flashdrive}
+		sudo mkfs.vfat -F 32 -n "CLOVER" ${flashdrive}1
 	fi
+
 }
 
 function burn {
