@@ -32,7 +32,7 @@ function version {
 	Press Enter to download latest release (default)
 	[H]igh Sierra (10.13)
 	[M]ojave (10.14)
-	[C]atalina (10.15 beta)
+	[C]atalina (10.15)
 
 	'
 	read -n 1 -p "[H/M/C] " macOS_release_name 2>/dev/tty
