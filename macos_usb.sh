@@ -128,7 +128,7 @@ function partition {
 
 function burn {
 	echo "Flashing the image"
-	sudo dd if=${hfsfile} of=${flashdrive}2 bs=8M status=progress oflag=sync 2>/dev/null || sudo dd if=${hfsfile} of=${flashdrive}s2 bs=8m
+	sudo dd if=${hfsfile} of=${flashdrive}2 bs=8M status=progress oflag=sync 2>/dev/null || sudo dd if=${hfsfile} of=${flashdrive}s2 bs=8M
 }
 
 
