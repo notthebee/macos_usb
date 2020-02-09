@@ -128,8 +128,18 @@ function partition {
 
 function burn {
 	echo "Flashing the image"
-	sudo dd if=${hfsfile} of=${flashdrive}2 bs=8M status=progress oflag=sync 2>/dev/null || sudo dd if=${hfsfile} of=${flashdrive}s2 bs=8m
+
+	case "$OSTYPE" in
+		"linux-gnu"*)
+			sudo dd if=${hfsfile} of=${flashdrive}2 bs=1M status=progress oflag=sync 2>/dev/null
+			;;
+		*)
+			# Catalina introduces a new version of dd that accepts capital M as a block size
+			sudo dd if=${hfsfile} of=${flashdrive}s2 bs=1m || sudo dd if=${hfsfile} of=${flashdrive}s2 bs=1M
+			;;
+	esac
 }
+
 
 
 checkdep
