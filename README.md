@@ -4,7 +4,7 @@ A script that automates creation of a bootable macOS installer on Linux and macO
 * Uses **gibMacOS** by corpnewt: https://github.com/corpnewt/gibMacOS
 * Inspired by https://github.com/myspaghetti/macos-guest-virtualbox
 * Uses only open-source software and downloads unmodified Apple binaries, without closed-source additions or fishy ISO images
-* Largely based on this tutorial: https://internet-install.gitbook.io/macos-internet-install/preparing-your-installer.../preparing-your-installer-media...
+* Largely based on this tutorial: https://internet-install.gitbook.io/macos-internet-install/preparing-your-installer
 
 ### Dependencies
 * p7zip
