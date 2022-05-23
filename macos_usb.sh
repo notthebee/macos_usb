@@ -17,6 +17,16 @@ function checkdep {
 			;;
 	esac
 
+  # check the Python version
+	if ! $python3 --version &> /dev/null; then
+		PYTHON=python3
+	elif [ -n $(python --version | grep 3.) ]; then
+		PYTHON=python
+	else 
+		echo "Please install python3"
+		exit 1
+	fi
+		
 	# check for dependencies
 	for n in git 7z; do
  		if ! $n --help &> /dev/null; then
@@ -24,10 +34,6 @@ function checkdep {
 			exit 1
 		fi
 	done
-	if ! python --help &> /dev/null; then
-			echo "Please install Python or python-is-python3"
-			exit 1
-		fi
 }
 
 function version {
@@ -50,22 +56,22 @@ function gibmacos {
 	rm -rf gibMacOS && git clone "https://github.com/corpnewt/gibMacOS" &> /dev/null
 	case $macOS_release_name in
 		[Hh])
-			python gibMacOS/gibMacOS.py -r -v 10.13
+			$PYTHON gibMacOS/gibMacOS.py -r -v 10.13
 			;;
 		[Mm])
-			python gibMacOS/gibMacOS.py -r -v 10.14
+			$PYTHON gibMacOS/gibMacOS.py -r -v 10.14
 			;;
 		[Cc])
-			python gibMacOS/gibMacOS.py -r -v 10.15
+			$PYTHON gibMacOS/gibMacOS.py -r -v 10.15
 			;;
 		[Bb])
-			python gibMacOS/gibMacOS.py -r -v 11
+			$PYTHON gibMacOS/gibMacOS.py -r -v 11
 			;;
 		[Oo])
-			python gibMacOS/gibMacOS.py -r -v 11
+			$PYTHON gibMacOS/gibMacOS.py -r -v 11
 			;;
 		*)
-			python gibMacOS/gibMacOS.py -r -l
+			$PYTHON gibMacOS/gibMacOS.py -r -l
 			;;
 	esac
 }
