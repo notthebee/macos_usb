@@ -24,8 +24,8 @@ function checkdep {
 			exit 1
 		fi
 	done
-	if ! python -v &> /dev/null; then
-			echo "Please install Python"
+	if ! python --help &> /dev/null; then
+			echo "Please install Python or python-is-python3"
 			exit 1
 		fi
 }
