@@ -18,12 +18,16 @@ function checkdep {
 	esac
 
 	# check for dependencies
-	for n in git python 7z; do
+	for n in git 7z; do
  		if ! $n --help &> /dev/null; then
 			echo "Please install $n"
 			exit 1
 		fi
 	done
+	if ! python --help &> /dev/null; then
+			echo "Please install Python or python-is-python3"
+			exit 1
+		fi
 }
 
 function version {
@@ -33,27 +37,35 @@ function version {
 	[H]igh Sierra (10.13)
 	[M]ojave (10.14)
 	[C]atalina (10.15)
+	[B]ig Sur (11)
+	M[o]nterey (12)
 
 	'
-	read -n 1 -p "[H/M/C] " macOS_release_name 2>/dev/tty
+	read -n 1 -p "[H/M/C/B/O] " macOS_release_name 2>/dev/tty
 	echo ""
 }
 
 function gibmacos {
-	echo "Fetching latest gibMacOS by corpnewt"
+	echo "Fetching latest gibMacOS by corpnewt (Modified to work)"
 	rm -rf gibMacOS && git clone "https://github.com/corpnewt/gibMacOS" &> /dev/null
 	case $macOS_release_name in
 		[Hh])
-			python gibMacOS/gibMacOS.command -r -v 10.13
+			python gibMacOS/gibMacOS.py -r -v 10.13
 			;;
 		[Mm])
-			python gibMacOS/gibMacOS.command -r -v 10.14
+			python gibMacOS/gibMacOS.py -r -v 10.14
 			;;
 		[Cc])
-			python gibMacOS/gibMacOS.command -r -v 10.15
+			python gibMacOS/gibMacOS.py -r -v 10.15
+			;;
+		[Bb])
+			python gibMacOS/gibMacOS.py -r -v 11
+			;;
+		[Oo])
+			python gibMacOS/gibMacOS.py -r -v 11
 			;;
 		*)
-			python gibMacOS/gibMacOS.command -r -l
+			python gibMacOS/gibMacOS.py -r -l
 			;;
 	esac
 }
