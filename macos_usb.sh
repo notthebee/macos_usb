@@ -46,26 +46,26 @@ function version {
 }
 
 function gibmacos {
-	echo "Fetching latest gibMacOS by corpnewt (old version compatible with the script)"
-	rm -rf gibMacOS && git clone "https://github.com/voxan24/gibMacOS" &> /dev/null
+	echo "Fetching latest gibMacOS by corpnewt (Modified to work)"
+	rm -rf gibMacOS && git clone "https://github.com/corpnewt/gibMacOS" &> /dev/null
 	case $macOS_release_name in
 		[Hh])
-			python gibMacOS/gibMacOS.command -r -v 10.13
+			python gibMacOS/gibMacOS.py -r -v 10.13
 			;;
 		[Mm])
-			python gibMacOS/gibMacOS.command -r -v 10.14
+			python gibMacOS/gibMacOS.py -r -v 10.14
 			;;
 		[Cc])
-			python gibMacOS/gibMacOS.command -r -v 10.15
+			python gibMacOS/gibMacOS.py -r -v 10.15
 			;;
 		[Bb])
-			python gibMacOS/gibMacOS.command -r -v 11
+			python gibMacOS/gibMacOS.py -r -v 11
 			;;
 		[Oo])
-			python gibMacOS/gibMacOS.command -r -v 11
+			python gibMacOS/gibMacOS.py -r -v 11
 			;;
 		*)
-			python gibMacOS/gibMacOS.command -r -l
+			python gibMacOS/gibMacOS.py -r -l
 			;;
 	esac
 }
