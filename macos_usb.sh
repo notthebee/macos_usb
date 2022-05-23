@@ -18,12 +18,16 @@ function checkdep {
 	esac
 
 	# check for dependencies
-	for n in git python 7z; do
+	for n in git 7z; do
  		if ! $n --help &> /dev/null; then
 			echo "Please install $n"
 			exit 1
 		fi
 	done
+	if ! python -v &> /dev/null; then
+			echo "Please install Python"
+			exit 1
+		fi
 }
 
 function version {
