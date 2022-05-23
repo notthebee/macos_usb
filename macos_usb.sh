@@ -42,8 +42,8 @@ function version {
 }
 
 function gibmacos {
-	echo "Fetching latest gibMacOS by corpnewt"
-	rm -rf gibMacOS && git clone "https://github.com/corpnewt/gibMacOS" &> /dev/null
+	echo "Fetching latest gibMacOS by corpnewt (old version compatible with the script)"
+	rm -rf gibMacOS && git clone "https://github.com/EDKTech/gibMacOS" &> /dev/null
 	case $macOS_release_name in
 		[Hh])
 			python gibMacOS/gibMacOS.command -r -v 10.13
